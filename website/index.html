@@ -6,6 +6,7 @@
     <meta name="description" content="RodaRent — Sewa 60 unit mobil dan motor terpercaya. Cek ketersediaan unit, hitung estimasi dengan supir atau diskon mingguan, dan booking praktis.">
     <title>RodaRent — Sewa Mobil &amp; Motor Praktis</title>
     <link rel="stylesheet" href="styles.css">
+    <script src="fleet-data.js" defer></script>
     <script src="app.js" defer></script>
   </head>
   <body>
@@ -19,6 +20,7 @@
         <a href="#armada">Armada (60)</a>
         <a href="#keunggulan">Keunggulan</a>
         <a href="#cara-sewa">Cara sewa</a>
+        <a href="laporan.html">Laporan Keuangan</a>
       </nav>
 
       <div class="header-actions">
@@ -217,6 +219,43 @@
         <div class="input-with-suffix">
           <input class="form-control" id="rentalDays" type="number" min="1" max="60" value="3" required>
           <span>hari</span>
+        </div>
+
+        <label class="form-label" for="customerName">Nama pelanggan</label>
+        <input class="form-control" id="customerName" type="text" placeholder="Contoh: Budi Santoso / PT Karya Jaya" maxlength="80" autocomplete="name" required>
+
+        <fieldset class="payment-fieldset">
+          <legend>Metode pembayaran</legend>
+          <div class="payment-options">
+            <label class="payment-option">
+              <input type="radio" name="paymentMethod" value="transfer" checked>
+              <span>
+                <strong>Transfer Bank</strong>
+                <small>BCA, BRI, BNI, Mandiri, dll.</small>
+              </span>
+            </label>
+            <label class="payment-option">
+              <input type="radio" name="paymentMethod" value="cash">
+              <span>
+                <strong>Tunai (Cash)</strong>
+                <small>Bayar langsung di kantor</small>
+              </span>
+            </label>
+          </div>
+        </fieldset>
+
+        <div id="bankField">
+          <label class="form-label" for="bankSelect">Bank tujuan transfer</label>
+          <select class="form-control" id="bankSelect">
+            <option value="BCA">BCA</option>
+            <option value="BRI">BRI</option>
+            <option value="BNI">BNI</option>
+            <option value="Mandiri">Mandiri</option>
+            <option value="BSI">BSI (Bank Syariah Indonesia)</option>
+            <option value="Bank Kalsel">Bank Kalsel</option>
+            <option value="CIMB Niaga">CIMB Niaga</option>
+            <option value="Lainnya">Bank lainnya</option>
+          </select>
         </div>
 
         <!-- Opsi khusus Mobil (Dengan Supir) -->

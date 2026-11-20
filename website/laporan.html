@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Laporan transaksi pemasukan dan pengeluaran RodaRent, dibaca langsung dari database SQLite rental.db.">
+    <title>Laporan Keuangan — RodaRent</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="laporan.css">
+    <script src="laporan.js" defer></script>
+  </head>
+  <body class="report-page">
+    <header class="site-header">
+      <a class="brand" href="index.html" aria-label="RodaRent, katalog armada">
+        <span class="brand__mark" aria-hidden="true">R</span>
+        <span>roda<span class="brand__accent">rent</span></span>
+      </a>
+
+      <nav class="main-nav" aria-label="Navigasi utama">
+        <a href="index.html#armada">Armada (60)</a>
+        <a href="index.html#keunggulan">Keunggulan</a>
+        <a href="index.html#cara-sewa">Cara sewa</a>
+        <a href="laporan.html" aria-current="page">Laporan Keuangan</a>
+      </nav>
+
+      <div class="header-actions">
+        <span class="live-badge" id="dbBadge" aria-live="polite">SQLite · rental.db</span>
+        <a class="button button--small button--dark header-cta" href="index.html">Katalog <span aria-hidden="true">↗</span></a>
+      </div>
+    </header>
+
+    <main class="report-main">
+      <section class="report-hero">
+        <div>
+          <p class="eyebrow"><span class="eyebrow__dot"></span> LAPORAN KEUANGAN OTOMATIS</p>
+          <h1>Pemasukan &amp; pengeluaran,<br><span>tercatat rapi.</span></h1>
+          <p class="report-hero__description">
+            Seluruh transaksi disimpan pada database <strong>SQLite</strong> di file
+            <code>rental.db</code> dan dibaca langsung oleh halaman ini. Lengkap dengan
+            rekap bulanan, kategori, dan rincian per unit.
+          </p>
+        </div>
+        <div class="report-hero__actions">
+          <button class="button button--lime" type="button" id="openFormBtn">+ Catat Transaksi</button>
+          <button class="button button--ghost" type="button" id="exportBtn">Unduh CSV</button>
+          <button class="button button--ghost" type="button" id="printBtn">Cetak Laporan</button>
+        </div>
+      </section>
+
+      <section class="report-filters" aria-label="Filter laporan">
+        <label class="report-field">
+          <span>Dari bulan</span>
+          <input type="month" id="dariBulan">
+        </label>
+        <label class="report-field">
+          <span>Sampai bulan</span>
+          <input type="month" id="sampaiBulan">
+        </label>
+        <label class="report-field">
+          <span>Jenis transaksi</span>
+          <select id="filterJenis">
+            <option value="all">Semua transaksi</option>
+            <option value="pemasukan">Pemasukan saja</option>
+            <option value="pengeluaran">Pengeluaran saja</option>
+          </select>
+        </label>
+        <label class="report-field report-field--grow">
+          <span>Cari keterangan, plat, atau pelanggan</span>
+          <input type="search" id="filterCari" placeholder="Contoh: Avanza, BL 1001, PT Sinar...">
+        </label>
+        <button class="button button--outline" type="button" id="resetFilterBtn">Reset filter</button>
+      </section>
+
+      <section class="report-summary" id="reportSummary" aria-live="polite">
+        <article class="summary-card summary-card--income">
+          <span class="summary-card__label">Total Pemasukan</span>
+          <strong id="totalPemasukan">—</strong>
+          <small id="jumlahPemasukan">—</small>
+        </article>
+        <article class="summary-card summary-card--expense">
+          <span class="summary-card__label">Total Pengeluaran</span>
+          <strong id="totalPengeluaran">—</strong>
+          <small id="jumlahPengeluaran">—</small>
+        </article>
+        <article class="summary-card summary-card--profit">
+          <span class="summary-card__label">Laba Bersih</span>
+          <strong id="totalLaba">—</strong>
+          <small id="marginLaba">—</small>
+        </article>
+        <article class="summary-card summary-card--neutral">
+          <span class="summary-card__label">Jumlah Transaksi</span>
+          <strong id="totalTransaksi">—</strong>
+          <small id="periodeAktif">—</small>
+        </article>
+      </section>
+
+      <section class="report-grid">
+        <article class="panel panel--chart">
+          <div class="panel__head">
+            <div>
+              <p class="eyebrow eyebrow--muted">TREN BULANAN</p>
+              <h2>Arus kas per bulan</h2>
+            </div>
+            <div class="chart-legend">
+              <span><i class="dot dot--income"></i> Pemasukan</span>
+              <span><i class="dot dot--expense"></i> Pengeluaran</span>
+            </div>
+          </div>
+          <div class="chart" id="monthlyChart"></div>
+          <table class="mini-table" id="monthlyTable">
+            <thead>
+              <tr><th>Bulan</th><th>Pemasukan</th><th>Pengeluaran</th><th>Laba</th></tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </article>
+
+        <article class="panel panel--breakdown">
+          <div class="panel__head">
+            <div>
+              <p class="eyebrow eyebrow--muted">KOMPOSISI</p>
+              <h2>Rekap per kategori</h2>
+            </div>
+          </div>
+          <div class="breakdown" id="breakdownKategori"></div>
+        </article>
+      </section>
+
+      <section class="panel panel--table">
+        <div class="panel__head">
+          <div>
+            <p class="eyebrow eyebrow--muted">BUKU KAS</p>
+            <h2>Rincian transaksi</h2>
+          </div>
+          <div class="panel__tools">
+            <span class="results-count" id="hasilTransaksi">—</span>
+            <select id="sortTransaksi" aria-label="Urutkan transaksi">
+              <option value="desc">Terbaru dulu</option>
+              <option value="asc">Terlama dulu</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table class="report-table">
+            <thead>
+              <tr>
+                <th>Tanggal</th>
+                <th>Jenis</th>
+                <th>Kategori</th>
+                <th>Keterangan</th>
+                <th>Pelanggan</th>
+                <th>Metode</th>
+                <th class="text-right">Nominal</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="transaksiBody"></tbody>
+          </table>
+        </div>
+
+        <div class="table-footer">
+          <button class="button button--outline" type="button" id="prevPageBtn">← Sebelumnya</button>
+          <span id="pageInfo">Halaman 1</span>
+          <button class="button button--outline" type="button" id="nextPageBtn">Berikutnya →</button>
+        </div>
+
+        <p class="empty-state" id="emptyTransaksi" hidden>Tidak ada transaksi pada filter ini.</p>
+      </section>
+
+      <p class="report-note">
+        <strong>Catatan:</strong> data dibaca langsung dari <code>rental.db</code> melalui API
+        <code>/api/transaksi</code>. Jalankan <code>npm start</code> untuk membuka halaman ini,
+        atau <code>npm run laporan</code> untuk mencetak laporan lengkap di terminal.
+      </p>
+    </main>
+
+    <footer class="site-footer">
+      <a class="brand brand--footer" href="index.html">
+        <span class="brand__mark" aria-hidden="true">R</span>
+        <span>roda<span class="brand__accent">rent</span></span>
+      </a>
+      <p>Laporan Keuangan Rental 60 Armada Mobil &amp; Motor — SQLite.</p>
+      <span class="footer-copy">© <span id="currentYear"></span> RodaRent</span>
+    </footer>
+
+    <dialog class="booking-dialog" id="transaksiDialog" aria-labelledby="transaksiDialogTitle">
+      <form class="booking-form" id="transaksiForm">
+        <button class="dialog-close" type="button" id="closeTransaksiDialog" aria-label="Tutup">×</button>
+        <p class="eyebrow eyebrow--muted">CATAT TRANSAKSI BARU</p>
+        <h2 id="transaksiDialogTitle">Tambahkan ke buku kas.</h2>
+
+        <div class="form-grid">
+          <label class="form-label" for="trxTanggal">Tanggal
+            <input class="form-control" type="date" id="trxTanggal" required>
+          </label>
+          <label class="form-label" for="trxJenis">Jenis
+            <select class="form-control" id="trxJenis" required>
+              <option value="pemasukan">Pemasukan</option>
+              <option value="pengeluaran">Pengeluaran</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="form-grid">
+          <label class="form-label" for="trxKategori">Kategori
+            <input class="form-control" type="text" id="trxKategori" list="kategoriList" placeholder="Sewa Mobil" required>
+            <datalist id="kategoriList"></datalist>
+          </label>
+          <label class="form-label" for="trxNominal">Nominal (Rp)
+            <input class="form-control" type="number" id="trxNominal" min="1" step="1000" placeholder="350000" required>
+          </label>
+        </div>
+
+        <label class="form-label" for="trxKeterangan">Keterangan
+          <input class="form-control" type="text" id="trxKeterangan" placeholder="Sewa Toyota Avanza (BL 1001 AA) 3 hari" required>
+        </label>
+
+        <div class="form-grid">
+          <label class="form-label" for="trxKendaraan">Unit kendaraan (opsional)
+            <select class="form-control" id="trxKendaraan">
+              <option value="">— Tidak terkait unit —</option>
+            </select>
+          </label>
+          <label class="form-label" for="trxMetode">Metode bayar
+            <select class="form-control" id="trxMetode">
+              <optgroup label="Transfer Bank">
+                <option value="Transfer BCA">Transfer BCA</option>
+                <option value="Transfer BRI">Transfer BRI</option>
+                <option value="Transfer BNI">Transfer BNI</option>
+                <option value="Transfer Mandiri">Transfer Mandiri</option>
+                <option value="Transfer BSI">Transfer BSI</option>
+                <option value="Transfer Bank Kalsel">Transfer Bank Kalsel</option>
+                <option value="Transfer Bank Lainnya">Transfer Bank Lainnya</option>
+              </optgroup>
+              <option value="Tunai">Tunai</option>
+              <option value="QRIS">QRIS</option>
+              <option value="Kartu Debit">Kartu Debit</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="form-grid">
+          <label class="form-label" for="trxPelanggan">Pelanggan (opsional)
+            <input class="form-control" type="text" id="trxPelanggan" placeholder="Nama pelanggan / instansi">
+          </label>
+          <label class="form-label" for="trxJumlahHari">Jumlah hari (opsional)
+            <input class="form-control" type="number" id="trxJumlahHari" min="1" placeholder="3">
+          </label>
+        </div>
+
+        <label class="form-label" for="trxCatatan">Catatan tambahan (opsional)
+          <input class="form-control" type="text" id="trxCatatan" placeholder="Termasuk supir, diskon promo, dll.">
+        </label>
+
+        <p class="form-error" id="trxError" role="alert" hidden></p>
+
+        <div class="dialog-actions">
+          <button class="button button--dark dialog-submit" type="submit">Simpan Transaksi <span aria-hidden="true">✓</span></button>
+        </div>
+      </form>
+    </dialog>
+
+    <div class="toast" id="toastNotification" role="status" aria-live="polite" hidden></div>
+  </body>
+</html>

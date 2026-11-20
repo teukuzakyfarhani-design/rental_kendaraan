@@ -1,0 +1,7 @@
+node_modules/
+*.db-wal
+*.db-shm
+*.log
+laporan-*.csv
+.DS_Store
+Thumbs.db

@@ -351,7 +351,7 @@ h1, h2, h3 { font-family: var(--serif); }
 
 .vehicle-card__visual {
   position: relative;
-  height: 168px;
+  height: 182px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -365,8 +365,37 @@ h1, h2, h3 { font-family: var(--serif); }
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center 56%;
+  object-position: center 62%;
+  transition: transform .35s ease;
 }
+
+.vehicle-card:hover .vehicle-card__photo { transform: scale(1.045); }
+
+.vehicle-fallback {
+  position: relative;
+  z-index: 0;
+  display: grid;
+  gap: 4px;
+  max-width: 100%;
+  padding: 10px 14px;
+  text-align: center;
+}
+
+.vehicle-fallback__category {
+  color: #6b8d48;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .6px;
+  text-transform: uppercase;
+}
+
+.vehicle-fallback strong {
+  font-family: var(--serif);
+  font-size: 14px;
+  color: var(--green);
+}
+
+.vehicle-fallback small { color: #6b776f; font-size: 10.5px; }
 
 .vehicle-card__visual--photo::after {
   position: absolute;
@@ -586,8 +615,28 @@ h1, h2, h3 { font-family: var(--serif); }
 .input-with-suffix .form-control { padding-right: 48px; }
 .input-with-suffix > span { position: absolute; top: 50%; right: 13px; transform: translateY(-50%); color: #8b958d; font-size: 11.5px; font-weight: 600; }
 
-.driver-option-box { margin-top: 14px; }
-.checkbox-card {
+.payment-fieldset { margin: 14px 0 0; padding: 0; border: 0; }
+.payment-fieldset legend { padding: 0; margin: 0 0 5px; color: #46534a; font-size: 11.5px; font-weight: 700; }
+.payment-options { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.payment-option {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 12px;
+  border: 1px solid #dce2d8;
+  border-radius: 8px;
+  background: #fcfdfb;
+  cursor: pointer;
+  transition: border-color .15s ease, background .15s ease, box-shadow .15s ease;
+}
+.payment-option:hover { border-color: #b9c9a8; }
+.payment-option input { flex: none; width: 16px; height: 16px; accent-color: var(--green); }
+.payment-option strong { display: block; font-size: 12px; color: #46534a; }
+.payment-option small { display: block; font-size: 10.5px; color: #7b8780; }
+.payment-option:has(input:checked) { border-color: #7ea35a; background: #f3f8ec; box-shadow: 0 0 0 2px rgba(131,166,95,.14); }
+.payment-option:has(input:checked) strong { color: var(--green); }
+
+.driver-option-box { margin-top: 14px; }.checkbox-card {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -629,6 +678,14 @@ h1, h2, h3 { font-family: var(--serif); }
   font-weight: 800;
   color: var(--green);
 }
+
+.estimate-method {
+  margin-top: 6px;
+  color: #637368;
+  font-size: 11px;
+}
+
+.estimate-method strong { color: #2f491f; }
 
 .dialog-actions { margin-top: 18px; }
 .dialog-submit { width: 100%; }

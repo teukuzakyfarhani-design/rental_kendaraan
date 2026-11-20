@@ -1,0 +1,16 @@
+{
+  "name": "rodarent-rental-kendaraan",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "RodaRent — katalog rental 60 armada + laporan transaksi pemasukan/pengeluaran berbasis SQLite",
+  "scripts": {
+    "start": "node server.mjs",
+    "db:init": "node database/init.mjs",
+    "db:reset": "node database/init.mjs --reset",
+    "laporan": "node scripts/laporan-cli.mjs"
+  },
+  "engines": {
+    "node": ">=22.5.0"
+  }
+}
